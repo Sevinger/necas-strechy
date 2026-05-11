@@ -285,61 +285,188 @@
   #hero-name        { left: 3vw; }
 }
 
-@media (max-width: 640px) {
-  /* Taller stage — info phases need reading time on mobile too */
-  #scroll-stage { height: 400vh; }
+@media (max-width: 680px) {
 
+  :root {
+    --bg-color: #f5f1ec;
+  }
+
+  /* ══════════════════════════════
+     HERO – scroll stage výška
+  ══════════════════════════════ */
+  #scroll-stage {
+    height: 450vh;
+  }
+
+  /* ══════════════════════════════
+     STICKY WRAPPER – full height
+  ══════════════════════════════ */
   #sticky-hero {
     flex-direction: column;
-    align-items: flex-start;
     justify-content: flex-start;
-    padding: 10vh 1.5rem 2rem;
-    gap: 2vh;
-  }
-
-  /* Pull hero-name into the flex flow instead of absolute */
-  #hero-name {
-    position: relative;
-    left: auto;
-    top: auto;
-    transform: none;
-    flex-shrink: 0;
-    order: 0;
-  }
-
-  /* Gentle upward fade on hide, not the desktop -50% jump */
-  #hero-name.hidden {
-    transform: translateY(-20px);
-  }
-
-  /* Canvas fills full row, sits above panels */
-  #animation-center {
-    width: 100%;
-    max-width: none;
-    transform: translateX(0) !important;
-    flex-shrink: 0;
-    order: 1;
-  }
-
-  /* Info panels appear below the canvas on mobile */
-  .info-panel {
-    display: flex;
-    flex: 0 0 auto;
-    height: auto;
-    width: 100%;
+    align-items: stretch;
     padding: 0;
   }
 
-  #info-left  { order: 2; }
-  #info-right { order: 3; }
-
-  .info-panel--right {
-    align-items: flex-start;
-    text-align: left;
+  /* Gradient přes spodní část – za střechou, před jménem */
+  #sticky-hero::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 55%;
+    background: linear-gradient(to top, var(--bg-color, #f5f1ec) 40%, transparent);
+    z-index: 2;
+    pointer-events: none;
   }
 
-  .panel-sentence { max-width: 100%; font-size: 0.9rem; }
-  .panel-inner    { padding: 0.875rem 1.1rem; width: 100%; }
+  /* ══════════════════════════════
+     FÁZE 0 – střecha full height,
+     jméno překryv dole
+  ══════════════════════════════ */
+
+  /* Canvas vyplní celou výšku viewportu */
+  #animation-center {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    transform: translateX(0) !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1;
+  }
+
+  #roof-canvas {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+
+  /* Jméno – překryv přes střechu, dole */
+  #hero-name {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 0 1.5rem 2rem;
+    z-index: 3;
+    transform: translateY(0) !important;
+    top: auto;
+  }
+
+  #hero-name.hidden {
+    opacity: 0;
+    transform: translateY(20px) !important;
+  }
+
+  .name-main {
+    font-size: clamp(3rem, 14vw, 4.5rem);
+    line-height: 0.88;
+  }
+
+  .name-divider {
+    margin-top: 0.75rem;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+
+  /* ══════════════════════════════
+     INFO PANELY – fáze 1–3
+     Pryč s kartami, minimalisticky
+  ══════════════════════════════ */
+
+  /* Oba panely absolutně dole */
+  #info-left,
+  #info-right {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 0 1.5rem 1.5rem;
+    z-index: 3;
+    flex-direction: column;
+    align-items: flex-start;
+    text-align: left;
+    height: auto;
+    background: none;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  /* Pravý panel skrytý – vše v levém */
+  #info-right {
+    display: none;
+  }
+
+  /* Resetovat kartu .panel-inner na mobilu */
+  #info-left .panel-inner {
+    background: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    border: none;
+    border-radius: 0;
+    padding: 0;
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 0.75rem;
+    width: 100%;
+  }
+
+  /* Tečka + svislá čára vlevo */
+  #info-left .panel-line {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    width: auto;
+    height: auto;
+    margin: 0.3rem 0 0;
+    background: none;
+  }
+
+  .panel-line--left::after,
+  .panel-line--right::after {
+    display: none;
+  }
+
+  #info-left .panel-line::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #9b7a54;
+    flex-shrink: 0;
+  }
+
+  #info-left .panel-line::after {
+    display: block !important;
+    content: '';
+    width: 1px;
+    height: 32px;
+    background: linear-gradient(to bottom, #9b7a54, transparent);
+    position: static;
+    border-radius: 0;
+  }
+
+  #info-left {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding-bottom: 2rem;
+  }
+
+  .panel-sentence {
+    font-size: 1rem;
+    max-width: 100%;
+    margin-bottom: 0.4rem;
+  }
+
+  .panel-tag {
+    font-size: 0.58rem;
+    letter-spacing: 0.2em;
+  }
 }
 
 @layer utilities {
