@@ -292,9 +292,8 @@
     flex-direction: column;
     align-items: flex-start;
     justify-content: flex-start;
-    padding: 8vh 0 0;
-    gap: 0;
-    position: relative;
+    padding: 10vh 1.5rem 2rem;
+    gap: 2vh;
   }
 
   #hero-name {
@@ -304,39 +303,35 @@
     transform: none;
     flex-shrink: 0;
     order: 0;
-    padding: 0 1.5rem;
   }
 
   #hero-name.hidden {
     transform: translateY(-20px);
   }
 
-  /* Canvas vyplní spodní část viewportu */
   #animation-center {
     width: 100%;
     max-width: none;
     transform: translateX(0) !important;
     flex-shrink: 0;
     order: 1;
-    margin-top: auto;
   }
 
-  /* Info panely absolutně přes spodní část canvasu */
   .info-panel {
-    position: absolute;
-    bottom: 1.25rem;
-    left: 1.25rem;
-    right: 1.25rem;
     display: flex;
-    flex: none;
+    flex: 0 0 auto;
     height: auto;
+    width: 100%;
     padding: 0;
-    z-index: 4;
+  }
+
+  #info-left  { order: 2; }
+  #info-right { order: 3; }
+
+  .info-panel--right {
     align-items: flex-start;
     text-align: left;
   }
-
-  #info-right { display: none; }
 
   .panel-inner { padding: 1.1rem 1.25rem; width: 100%; }
 
