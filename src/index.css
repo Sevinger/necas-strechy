@@ -286,16 +286,15 @@
 }
 
 @media (max-width: 640px) {
-  /* Shorter stage — no info panels to justify 700vh */
-  #scroll-stage { height: 300vh; }
+  /* Taller stage — info phases need reading time on mobile too */
+  #scroll-stage { height: 400vh; }
 
-  /* Stack name above canvas, left-aligned, below navbar */
   #sticky-hero {
     flex-direction: column;
     align-items: flex-start;
     justify-content: flex-start;
-    padding: 13vh 1.5rem 3rem;
-    gap: 3.5vh;
+    padding: 10vh 1.5rem 2rem;
+    gap: 2vh;
   }
 
   /* Pull hero-name into the flex flow instead of absolute */
@@ -305,6 +304,7 @@
     top: auto;
     transform: none;
     flex-shrink: 0;
+    order: 0;
   }
 
   /* Gentle upward fade on hide, not the desktop -50% jump */
@@ -312,15 +312,34 @@
     transform: translateY(-20px);
   }
 
-  /* Canvas fills full row below the name */
+  /* Canvas fills full row, sits above panels */
   #animation-center {
     width: 100%;
     max-width: none;
     transform: translateX(0) !important;
     flex-shrink: 0;
+    order: 1;
   }
 
-  .info-panel { display: none; }
+  /* Info panels appear below the canvas on mobile */
+  .info-panel {
+    display: flex;
+    flex: 0 0 auto;
+    height: auto;
+    width: 100%;
+    padding: 0;
+  }
+
+  #info-left  { order: 2; }
+  #info-right { order: 3; }
+
+  .info-panel--right {
+    align-items: flex-start;
+    text-align: left;
+  }
+
+  .panel-sentence { max-width: 100%; font-size: 0.9rem; }
+  .panel-inner    { padding: 0.875rem 1.1rem; width: 100%; }
 }
 
 @layer utilities {
