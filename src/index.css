@@ -286,10 +286,41 @@
 }
 
 @media (max-width: 640px) {
-  #sticky-hero      { flex-direction: column; }
-  #animation-center { width: 88vw; transform: translateX(0) !important; }
-  .info-panel       { display: none; }
-  #hero-name        { left: 1.5rem; top: 10vh; transform: none; }
+  /* Shorter stage — no info panels to justify 700vh */
+  #scroll-stage { height: 300vh; }
+
+  /* Stack name above canvas, left-aligned, below navbar */
+  #sticky-hero {
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    padding: 13vh 1.5rem 3rem;
+    gap: 3.5vh;
+  }
+
+  /* Pull hero-name into the flex flow instead of absolute */
+  #hero-name {
+    position: relative;
+    left: auto;
+    top: auto;
+    transform: none;
+    flex-shrink: 0;
+  }
+
+  /* Gentle upward fade on hide, not the desktop -50% jump */
+  #hero-name.hidden {
+    transform: translateY(-20px);
+  }
+
+  /* Canvas fills full row below the name */
+  #animation-center {
+    width: 100%;
+    max-width: none;
+    transform: translateX(0) !important;
+    flex-shrink: 0;
+  }
+
+  .info-panel { display: none; }
 }
 
 @layer utilities {

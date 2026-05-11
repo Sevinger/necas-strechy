@@ -24,7 +24,7 @@ const Contact = () => {
       <div className="container-wide grid md:grid-cols-12 gap-10 md:gap-16">
         <Reveal className="md:col-span-5">
           <span className="eyebrow">Kontakt</span>
-          <h2 className="font-display text-4xl md:text-6xl text-ink mt-4 leading-[1.05] text-balance">
+          <h2 className="font-display text-3xl md:text-5xl lg:text-6xl text-ink mt-4 leading-[1.05] text-balance">
             Pošlete nám <span className="italic text-copper">nezávaznou poptávku.</span>
           </h2>
           <p className="text-ink-soft mt-6 leading-relaxed">
@@ -59,7 +59,7 @@ const Contact = () => {
         </Reveal>
 
         <Reveal delay={0.15} className="md:col-span-7">
-          <form onSubmit={onSubmit} className="bg-card rounded-3xl shadow-elegant p-8 md:p-12">
+          <form onSubmit={onSubmit} className="bg-card rounded-3xl shadow-elegant p-6 sm:p-8 md:p-12">
             <h3 className="font-display text-3xl text-ink mb-8">Poptávkový formulář</h3>
             <div className="space-y-5">
               <div>

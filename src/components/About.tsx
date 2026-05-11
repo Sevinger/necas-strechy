@@ -36,7 +36,7 @@ const About = () => {
         <div className="md:col-span-7">
           <Reveal>
             <span className="eyebrow">O nás</span>
-            <h2 className="font-display text-4xl md:text-6xl text-ink mt-4 leading-[1.05] text-balance">
+            <h2 className="font-display text-3xl md:text-5xl lg:text-6xl text-ink mt-4 leading-[1.05] text-balance">
               Tradice, řemeslo <span className="italic text-copper">a poctivost.</span>
             </h2>
           </Reveal>

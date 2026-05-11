@@ -13,7 +13,7 @@ const Reviews = () => {
     <section id="recenze" className="py-24 md:py-32 bg-cream-deep/80 backdrop-blur-sm">
       <div className="container-wide">
         <Reveal className="grid md:grid-cols-12 gap-8 mb-14">
-          <h2 className="md:col-span-8 font-display text-4xl md:text-6xl text-ink leading-[1.05] text-balance">
+          <h2 className="md:col-span-8 font-display text-3xl md:text-5xl lg:text-6xl text-ink leading-[1.05] text-balance">
             Spokojení zákazníci jsou <span className="italic text-copper">naše nejlepší vizitka.</span>
           </h2>
           <div className="md:col-span-4 md:pt-2">
@@ -36,7 +36,7 @@ const Reviews = () => {
               viewport={{ once: true, amount: 0.2 }}
               transition={{ duration: 0.7, delay: i * 0.12, ease: [0.22, 1, 0.36, 1] }}
               whileHover={{ y: -4 }}
-              className="bg-card rounded-2xl shadow-card hover:shadow-elegant transition-shadow duration-500 p-8 flex flex-col"
+              className="bg-card rounded-2xl shadow-card hover:shadow-elegant transition-shadow duration-500 p-6 md:p-8 flex flex-col"
             >
               <div className="flex mb-5">
                 {[...Array(5)].map((_, j) => (
