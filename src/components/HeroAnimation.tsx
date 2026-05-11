@@ -1,7 +1,8 @@
 import { useEffect, useRef } from "react";
 
-const TOTAL_FRAMES = 240;
-const FRAME_PATH = (n: number) =>
+const TOTAL_FRAMES  = 240;
+const PRELOAD_FIRST = 10;
+const FRAME_PATH    = (n: number) =>
   `/frames/ezgif-frame-${String(n).padStart(3, "0")}.webp`;
 
 const INFO_PHASES = [
@@ -25,7 +26,6 @@ const INFO_PHASES = [
   },
 ];
 
-/* Native aspect ratio of frames (1920×1080) */
 const FRAME_RATIO = 1080 / 1920;
 
 const HeroAnimation = () => {
@@ -39,16 +39,18 @@ const HeroAnimation = () => {
   const leftTagRef    = useRef<HTMLSpanElement>(null);
   const rightTextRef  = useRef<HTMLParagraphElement>(null);
   const rightTagRef   = useRef<HTMLSpanElement>(null);
+  const overlayRef    = useRef<HTMLDivElement>(null);
+  const loadBarRef    = useRef<HTMLDivElement>(null);
 
-  const imagesRef       = useRef<(HTMLImageElement | null)[]>(new Array(TOTAL_FRAMES).fill(null));
+  const bitmapsRef      = useRef<(ImageBitmap | null)[]>(new Array(TOTAL_FRAMES).fill(null));
   const currentFrameRef = useRef(0);
   const currentPhaseRef = useRef(-2);
   const timeoutRef      = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  /* RAF state – never draw inside the scroll handler */
   const rafIdRef        = useRef<number | null>(null);
-  const pendingFrameRef = useRef(0);
+  const pendingFrameRef    = useRef(0);
   const pendingProgressRef = useRef(0);
+  const loadedCountRef  = useRef(0);
+  const readyRef        = useRef(false);
 
   useEffect(() => {
     const canvas     = canvasRef.current;
@@ -61,16 +63,16 @@ const HeroAnimation = () => {
     const leftTag    = leftTagRef.current;
     const rightText  = rightTextRef.current;
     const rightTag   = rightTagRef.current;
+    const overlay    = overlayRef.current;
+    const loadBar    = loadBarRef.current;
 
     if (!canvas || !stage || !heroName || !animCenter || !infoLeft || !infoRight) return;
 
     const ctx = canvas.getContext("2d", { alpha: true });
     if (!ctx) return;
 
-    const imgs = imagesRef.current;
+    const bitmaps = bitmapsRef.current;
 
-    /* ── Canvas resolution = display size, not native 1920×1080.
-       Draws 9× fewer pixels → the single biggest perf win.       ── */
     function resizeCanvas() {
       const w = animCenter!.offsetWidth;
       if (!w) return;
@@ -78,19 +80,18 @@ const HeroAnimation = () => {
       if (canvas!.width === w && canvas!.height === h) return;
       canvas!.width  = w;
       canvas!.height = h;
-      /* Redraw the current frame at the new size */
-      const img = imgs[currentFrameRef.current];
-      if (img?.complete) {
+      const bmp = bitmaps[currentFrameRef.current];
+      if (bmp) {
         ctx!.clearRect(0, 0, w, h);
-        ctx!.drawImage(img, 0, 0, w, h);
+        ctx!.drawImage(bmp, 0, 0, w, h);
       }
     }
 
     function drawFrame(index: number) {
-      const img = imgs[index];
-      if (!img?.complete) return;
+      const bmp = bitmaps[index];
+      if (!bmp) return;
       ctx!.clearRect(0, 0, canvas!.width, canvas!.height);
-      ctx!.drawImage(img, 0, 0, canvas!.width, canvas!.height);
+      ctx!.drawImage(bmp, 0, 0, canvas!.width, canvas!.height);
     }
 
     function setPhase(idx: number) {
@@ -117,13 +118,12 @@ const HeroAnimation = () => {
           if (rightTag)  rightTag.textContent  = p.rightTag;
           infoLeft!.classList.add("visible");
           infoRight!.classList.add("visible");
-        }, 300);
+        }, 280);
       }
     }
 
-    /* ── RAF render: runs once per animation frame, not per scroll event ── */
-    function render() {
-      rafIdRef.current = null;
+    /* Continuous RAF loop – scroll only sets pendingFrame, never touches canvas */
+    function renderLoop() {
       const frame    = pendingFrameRef.current;
       const progress = pendingProgressRef.current;
 
@@ -132,50 +132,55 @@ const HeroAnimation = () => {
         drawFrame(frame);
       }
 
-      /* 0–10% hero | 10–88% three info phases (175vh each) | 88–100% buffer */
       if (progress < 0.10) {
         setPhase(-1);
       } else {
         const infoProgress = (progress - 0.10) / 0.78;
         setPhase(Math.min(Math.floor(infoProgress * 3), 2));
       }
-    }
 
-    function scheduleRender() {
-      if (rafIdRef.current !== null) return; // already queued
-      rafIdRef.current = requestAnimationFrame(render);
+      rafIdRef.current = requestAnimationFrame(renderLoop);
     }
 
     function onScroll() {
+      if (!readyRef.current) return;
       const rect     = stage!.getBoundingClientRect();
       const stageH   = stage!.offsetHeight - window.innerHeight;
       const progress = Math.max(0, Math.min(1, -rect.top / stageH));
-      const frameIdx = Math.min(
-        Math.round(progress * (TOTAL_FRAMES - 1)),
-        TOTAL_FRAMES - 1
-      );
-      pendingFrameRef.current    = frameIdx;
+      pendingFrameRef.current    = Math.min(Math.round(progress * (TOTAL_FRAMES - 1)), TOTAL_FRAMES - 1);
       pendingProgressRef.current = progress;
-      scheduleRender();
     }
 
-    /* ── ResizeObserver keeps canvas resolution in sync with its CSS size ── */
+    /* Fetch → createImageBitmap: decoded directly to GPU memory */
+    async function loadFrame(i: number) {
+      try {
+        const resp = await fetch(FRAME_PATH(i + 1));
+        const blob = await resp.blob();
+        bitmaps[i] = await createImageBitmap(blob);
+        loadedCountRef.current++;
+
+        if (loadBar) {
+          loadBar.style.width = `${(loadedCountRef.current / TOTAL_FRAMES) * 100}%`;
+        }
+
+        if (loadedCountRef.current === PRELOAD_FIRST) {
+          resizeCanvas();
+          readyRef.current = true;
+          if (overlay) overlay.classList.add("done");
+          rafIdRef.current = requestAnimationFrame(renderLoop);
+          onScroll();
+        }
+      } catch (e) {
+        console.error("Frame load error:", FRAME_PATH(i + 1), e);
+      }
+    }
+
     const ro = new ResizeObserver(resizeCanvas);
     ro.observe(animCenter);
 
-    /* ── Preload all frames ── */
-    for (let i = 0; i < TOTAL_FRAMES; i++) {
-      const img = new Image();
-      img.decoding = "async"; // decode off main thread
-      img.onload = () => {
-        if (i === 0) { resizeCanvas(); drawFrame(0); }
-      };
-      img.src = FRAME_PATH(i + 1);
-      imgs[i] = img;
-    }
+    for (let i = 0; i < TOTAL_FRAMES; i++) loadFrame(i);
 
     window.addEventListener("scroll", onScroll, { passive: true });
-    onScroll();
 
     return () => {
       window.removeEventListener("scroll", onScroll);
@@ -187,9 +192,14 @@ const HeroAnimation = () => {
 
   return (
     <div id="scroll-stage" ref={stageRef}>
+
+      {/* Loading overlay – fades out after first 10 frames are GPU-ready */}
+      <div id="load-overlay" ref={overlayRef}>
+        <div id="load-bar" ref={loadBarRef} />
+      </div>
+
       <div id="sticky-hero">
 
-        {/* FÁZE 0 – name left, disappears on scroll */}
         <div id="hero-name" ref={heroNameRef}>
           <p className="name-eyebrow">Klempířství · Pokrývačství · Tesařství</p>
           <h1 className="name-main">
@@ -202,7 +212,6 @@ const HeroAnimation = () => {
           </div>
         </div>
 
-        {/* Info panel left (phases 1–3) */}
         <div id="info-left" className="info-panel info-panel--left" ref={infoLeftRef}>
           <div className="panel-inner">
             <div className="panel-line panel-line--left" />
@@ -211,12 +220,10 @@ const HeroAnimation = () => {
           </div>
         </div>
 
-        {/* Canvas – always visible, shifts from right to center */}
         <div id="animation-center" ref={animCenterRef}>
           <canvas id="roof-canvas" ref={canvasRef} />
         </div>
 
-        {/* Info panel right (phases 1–3) */}
         <div id="info-right" className="info-panel info-panel--right" ref={infoRightRef}>
           <div className="panel-inner">
             <div className="panel-line panel-line--right" />

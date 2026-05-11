@@ -70,6 +70,29 @@
   }
 }
 
+/* ── Loading overlay ── */
+#load-overlay {
+  position: fixed;
+  inset: 0;
+  background: hsl(var(--cream));
+  z-index: 999;
+  opacity: 1;
+  transition: opacity 0.5s ease 0.2s;
+  pointer-events: none;
+}
+#load-overlay.done {
+  opacity: 0;
+}
+#load-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  width: 0%;
+  background: #9b7a54;
+  transition: width 0.15s ease;
+}
+
 /* ── Scroll-animation hero ── */
 
 #scroll-stage {
